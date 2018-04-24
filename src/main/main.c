@@ -1,61 +1,13 @@
+
 // This implementation uses queues
 // https://www.freertos.org/Embedded-RTOS-Queues.html
 // queues support blocking and synchronization (since values are placed by value and not by reference)
 
 // udp example: https://github.com/Ebiroll/qemu_esp32/blob/master/examples/19_udp/main/main.c
 
-/*
-    import dependencies and initialize utilities
-*/
-// standard c libraries
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <time.h>
-#include <sys/time.h>
-
-// O.S. libraries
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "freertos/event_groups.h"
-
-// esp utils
-#include "driver/gpio.h"
-#include "esp_system.h"
-#include "esp_wifi.h"
-#include "esp_event_loop.h"
-#include "esp_attr.h"
-#include "esp_sleep.h"
-#include "nvs_flash.h"
-#include "lwip/err.h"
-#include "apps/sntp/sntp.h"
-
-#include <lwip/sockets.h>
-#include <lwip/err.h>
-#include <lwip/sockets.h>
-#include <lwip/sys.h>
-#include <lwip/netdb.h>
-#include <lwip/dns.h>
-
-//esp logging
-#include "esp_log.h"
-static const char *TAG = "app";
-static const char *TAG_RETREIVE = "retreive";
-static const char *TAG_OUTPUT = "output";
-int loop_count = 0;
-
-// arduino
-#include "Arduino.h"
+#include "main.h"
 
 
-
-/*
-    inner-headers
-*/
-void setup();
-void loop();
-void app_main();
-void milli_delay();
 
 /*
     global constants
@@ -63,14 +15,10 @@ void milli_delay();
 #define TRIG_PIN (2)
 #define ECHO_PIN (5)
 #define DATA_STRING_SIZE ((5+2+8)* sizeof(char))// 5 for distance, 2 for delimterers, 8 for timestamp
-#define PRODUCER_DELAY_MILLISECOND 30 // produce every X milliseconds
-#define CONSUMER_DELAY_MILLISECOND 75 // consume every X milliseconds
+#define PRODUCER_DELAY_MILLISECOND 300 // produce every X milliseconds
+#define CONSUMER_DELAY_MILLISECOND 750 // consume every X milliseconds
 #define DATA_PER_OUTPUT 10 // max k data per output
 #define QUEUE_SIZE 10 // how big the queue is
-
-// for wifi
-#define EXAMPLE_WIFI_SSID "Beach Bus" // iwgetid -r
-#define EXAMPLE_WIFI_PASS "Waterfall"
 
 // for communicating with UDP server
 #define RECEIVER_PORT_NUM 3000
@@ -91,171 +39,19 @@ time_t time_now;
 struct tm time_now_timeinfo;
 char strftime_buf[64];
 
-// for wifi
-static EventGroupHandle_t wifi_event_group;
-const int CONNECTED_BIT = BIT0;
+
+
+/*
+    inner-headers
+*/
+void setup();
+void loop();
+void app_main();
+void milli_delay();
+
 
 // for udp
 int socket_fd;
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*
-    utilities
-*/
-void milli_delay(int milli){
-    vTaskDelay(milli / portTICK_PERIOD_MS); // wait `milli` milliseconds
-}
-char* concat(const char *s1, const char *s2)
-{
-    char *result = malloc(strlen(s1)+strlen(s2)+1);//+1 for the null-terminator
-    //in real code you would check for errors in malloc here
-    strcpy(result, s1);
-    strcat(result, s2);
-    return result;
-}
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/*
-    time syncer
-*/
-static void request_time_update(void);
-static void initialize_utilities(void);
-static void initialize_non_volatile_storage(void);
-static void update_time_with_sntp(void);
-static void wait_until_time_updated(void);
-static void start_wifi_connection(void);
-static void stop_wifi_connection(void);
-static void wait_until_wifi_connected(void);
-static void initialise_wifi(void);
-static esp_err_t event_handler(void *ctx, system_event_t *event);
-
-
-static void task_update_internal_time_with_sntp( void *pvParameters ){
-    const int sleep_sec = 60; // 10 seconds
-    for( ;; )
-    {
-        ESP_LOGI(TAG_RETREIVE, "(!) Starting Update of Internal Wall-Clock Time Again...")
-
-        request_time_update();
-        //set_time_now_to_predefined();
-
-
-        ESP_LOGI(TAG_RETREIVE, "update of wall clock time has completed. entering task wait for %d seconds", sleep_sec);
-        vTaskDelay( sleep_sec * 1000 / portTICK_PERIOD_MS ); // wait / yield time to other tasks
-    }
-}
-static void request_time_update(void){
-    ESP_LOGI(TAG_RETREIVE, "retreiving time with SNTP protocol");
-
-    //start_wifi_connection();
-    //wait_until_wifi_connected();
-
-    update_time_with_sntp();
-    wait_until_time_updated();
-
-    //stop_wifi_connection();
-
-}
-static void initialize_utilities(void){
-    ESP_LOGI(TAG_RETREIVE, "initializing utilities required for retreiving time with SNTP");
-    initialize_non_volatile_storage();
-    initialise_wifi();
-    start_wifi_connection();
-    wait_until_wifi_connected();
-}
-static void initialize_non_volatile_storage(void){
-    ESP_LOGI(TAG_RETREIVE, "initializing non-volatile storage")
-    ESP_ERROR_CHECK( nvs_flash_init() ); // initialize non-volatile storage
-}
-static void update_time_with_sntp(void){
-    ESP_LOGI(TAG_RETREIVE, "requesting update of time with SNTP");
-
-    ESP_LOGI(TAG_RETREIVE, "starting SNTP");
-    sntp_setoperatingmode(SNTP_OPMODE_POLL); // set mode to listen only, we will manually poll every hour in a seperate thread
-    sntp_setservername(0, "pool.ntp.org");
-    sntp_init();
-    ESP_LOGI(TAG_RETREIVE, "   SNTP polling opened. Waiting untill time updated...");
-    wait_until_time_updated();
-    ESP_LOGI(TAG_RETREIVE, "   time has been updated. closed SNTP polling.");
-    sntp_stop();
-    // sntp_stop
-
-}
-static void wait_until_time_updated(void){
-    // init vars
-    time_t now;
-    struct tm timeinfo;
-
-    // get the time
-    time(&now);
-    localtime_r(&now, &timeinfo);
-
-    // test and block untill ready w/ max block of 10s
-    int retry = 0;
-    const int retry_count = 10;
-    while(timeinfo.tm_year < (1990 - 1900) && ++retry < retry_count) { // consider all years above 1990 to be valid
-        ESP_LOGI(TAG, "       Waiting for system time to be set... (%d/%d)", retry, retry_count);
-        vTaskDelay(2000 / portTICK_PERIOD_MS);
-        time(&now);
-        localtime_r(&now, &timeinfo);
-    }
-}
-static void start_wifi_connection(void){
-    ESP_LOGI(TAG_RETREIVE, "starting WiFi radio and connection");
-    ESP_ERROR_CHECK( esp_wifi_start() );
-    ESP_ERROR_CHECK( esp_wifi_connect() );
-}
-static void stop_wifi_connection(void){
-    ESP_LOGI(TAG_RETREIVE, "stopping WiFi radio and connection");
-    ESP_ERROR_CHECK( esp_wifi_disconnect() );
-    ESP_ERROR_CHECK( esp_wifi_stop() );
-}
-static void wait_until_wifi_connected(void){
-    ESP_LOGI(TAG_RETREIVE, "waiting untill wifi has connected");
-    xEventGroupWaitBits(wifi_event_group, CONNECTED_BIT, false, true, portMAX_DELAY); // waits untill wifi is connected
-    ESP_LOGI(TAG_RETREIVE, "wifi is now connected");
-}
-static void initialise_wifi(void){
-    ESP_LOGI(TAG_RETREIVE, "initializing WIFI");
-    tcpip_adapter_init();
-    wifi_event_group = xEventGroupCreate();
-    ESP_ERROR_CHECK( esp_event_loop_init(event_handler, NULL) );
-    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-    ESP_ERROR_CHECK( esp_wifi_init(&cfg) );
-    ESP_ERROR_CHECK( esp_wifi_set_storage(WIFI_STORAGE_RAM) );
-    wifi_config_t wifi_config = {
-        .sta = {
-            .ssid = EXAMPLE_WIFI_SSID,
-            .password = EXAMPLE_WIFI_PASS,
-        },
-    };
-    ESP_LOGI(TAG_RETREIVE, "   Setting WiFi configuration SSID %s...", wifi_config.sta.ssid);
-    ESP_ERROR_CHECK( esp_wifi_set_mode(WIFI_MODE_STA) );
-    ESP_ERROR_CHECK( esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config) );
-    ESP_LOGI(TAG_RETREIVE, "    WIFI initialized successfully");
-}
-static esp_err_t event_handler(void *ctx, system_event_t *event){
-    switch(event->event_id) {
-    case SYSTEM_EVENT_STA_START:
-        esp_wifi_connect();
-        break;
-    case SYSTEM_EVENT_STA_GOT_IP:
-        xEventGroupSetBits(wifi_event_group, CONNECTED_BIT);
-        break;
-    case SYSTEM_EVENT_STA_DISCONNECTED:
-        /* This is a workaround as ESP32 WiFi libs don't currently
-           auto-reassociate. */
-        esp_wifi_connect();
-        xEventGroupClearBits(wifi_event_group, CONNECTED_BIT);
-        break;
-    default:
-        break;
-    }
-    return ESP_OK;
-}
-
-
 
 
 /*
@@ -426,12 +222,11 @@ void setup(){
         printf("%s\n", "data_queue initialized successfully");
     }
 
-    // start WiFi
+    // start WiFi and Flash and wait for WiFi connection
     initialize_utilities();
 
     // start socket
     initialize_socket();
-
 }
 
 void app_main()

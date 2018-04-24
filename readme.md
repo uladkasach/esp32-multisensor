@@ -4,6 +4,7 @@ This package does two things:
 3. add data to data queue : [sensor_id, sensed_time, sensed_distance]
 4. <s> send data queue strings to a url
 5. create command line interface
+    - use "config"
 6. create server to display information as requested
 
 
