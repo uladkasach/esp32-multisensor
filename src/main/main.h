@@ -34,23 +34,6 @@
     #include <lwip/netdb.h>
     #include <lwip/dns.h>
 
-    //esp logging
-    #include "esp_log.h"
-    static const char *TAG = "app";
-    static const char *TAG_RETREIVE = "retreive";
-
-    // arduino
-    #include "Arduino.h"
-
-
-
-
-
-    /*
-        custom dependencies
-    */
-    #include "utils.h"
-    #include "time_sync.h"
 
 
 

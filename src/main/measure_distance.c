@@ -2,10 +2,18 @@
 
 //esp logging
 #include "esp_log.h"
-static const char *TAG = "app";
+static const char *TAG = "measure";
 
-// define sensors count
-#define SENSORS_COUNT (4) // define how many sensors we're using; used to initialize the semmaphors and start time values arrays
+
+// define F_CPU - copied from https://github.com/espressif/arduino-esp32/blob/f648ad7ceaa5c3e0af54de5777b3ed30b3dd1119/cores/esp32/esp32-hal.h
+#ifndef F_CPU
+#define F_CPU (CONFIG_ESP32_DEFAULT_CPU_FREQ_MHZ * 1000000U)
+#endif
+
+// define conversion function - copied from https://github.com/espressif/arduino-esp32/blob/3dc30dce811c0de1ca15d825ba0b898239070311/cores/esp32/Arduino.h
+#define clockCyclesPerMicrosecond() ( F_CPU / 1000000L )
+#define clockCyclesToMicroseconds(a) ( (a) / clockCyclesPerMicrosecond() )
+
 
 // define values for the monitor arrays
 static SemaphoreHandle_t measure_semaphors [ SENSORS_COUNT ];
@@ -26,7 +34,7 @@ static void pulse_pin(int pin){
 
 static void IRAM_ATTR echo_handler(int sensor_id){
     sensor_echo_times[sensor_id]=xthal_get_ccount();
-    // ets_printf(" (ECHO) echo was received for sensor %d at  %u \n", sensor_id, sensor_echo_times[sensor_id]);
+    //ets_printf(" (ECHO) echo was received for sensor %d at  %u \n", sensor_id, sensor_echo_times[sensor_id]);
 
     // release the semaphore.
     BaseType_t mustYield=false;
@@ -69,7 +77,6 @@ uint32_t measure_distance_for_sensor(int sensor_id){
 
     // calculate time difference
     uint32_t diff_time=sensor_echo_times[sensor_id]-sensor_trigger_times[sensor_id];
-    ESP_LOGI(TAG, "difference for sensor %d was %u", sensor_id, diff_time);
 
     // release waiting semaphore
     xSemaphoreGive( waiting_semaphors[sensor_id] );
@@ -77,7 +84,11 @@ uint32_t measure_distance_for_sensor(int sensor_id){
     // release measure semaphore
     xSemaphoreGive( measure_semaphors[sensor_id] );
 
+    // convert clocksycles to microseconds
+    diff_time = clockCyclesToMicroseconds(diff_time);
+
     // return distance
+    //ESP_LOGI(TAG, "difference for sensor %d was %u", sensor_id, diff_time);
     return diff_time;
 }
 

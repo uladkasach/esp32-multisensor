@@ -16,6 +16,7 @@
     #include "esp_intr_alloc.h"
 
     #include "utils.h"
+    #include "global_config.h"
 
     uint32_t measure_distance_for_sensor(int sensor_id);
     void register_monitor(int sensor_id, int gpio_echo_pin_number, int gpio_trig_pin_number);
