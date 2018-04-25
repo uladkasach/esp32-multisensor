@@ -93,7 +93,7 @@ uint32_t measure_distance_for_sensor(int sensor_id){
 }
 
 
-void register_monitor(int sensor_id, int gpio_echo_pin_number, int gpio_trig_pin_number){
+void register_sensor(int sensor_id, int gpio_echo_pin_number, int gpio_trig_pin_number){
     // register echo pin number
     sensor_echo_pins[sensor_id] = gpio_echo_pin_number;
 

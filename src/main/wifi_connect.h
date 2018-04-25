@@ -28,6 +28,7 @@
 
     //esp logging
     #include "esp_log.h"
+    #include "global_config.h"
 
 
     /*
@@ -37,13 +38,9 @@
     void start_wifi_connection(void);
     void stop_wifi_connection(void);
     void wait_until_wifi_connected(void);
-    void initialise_wifi(void);
+    void initialise_wifi();
     esp_err_t event_handler(void *ctx, system_event_t *event);
 
-
-    // dynamic vars
-    #define EXAMPLE_WIFI_SSID "Space Farms" // iwgetid -r
-    #define EXAMPLE_WIFI_PASS "Waterfall"
 
 
 

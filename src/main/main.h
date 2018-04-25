@@ -27,7 +27,6 @@
     #include "lwip/err.h"
     #include "apps/sntp/sntp.h"
 
-    #include <lwip/sockets.h>
     #include <lwip/err.h>
     #include <lwip/sockets.h>
     #include <lwip/sys.h>

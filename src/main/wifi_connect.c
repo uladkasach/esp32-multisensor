@@ -22,7 +22,7 @@ void wait_until_wifi_connected(void){
     xEventGroupWaitBits(wifi_event_group, CONNECTED_BIT, false, true, portMAX_DELAY); // waits untill wifi is connected
     ESP_LOGI(WIFI_LOG_TAG, "wifi is now connected");
 }
-void initialise_wifi(void){
+void initialise_wifi(){
     ESP_LOGI(WIFI_LOG_TAG, "initializing WIFI");
     tcpip_adapter_init();
     wifi_event_group = xEventGroupCreate();
@@ -30,12 +30,21 @@ void initialise_wifi(void){
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK( esp_wifi_init(&cfg) );
     ESP_ERROR_CHECK( esp_wifi_set_storage(WIFI_STORAGE_RAM) );
+
     wifi_config_t wifi_config = {
         .sta = {
             .ssid = EXAMPLE_WIFI_SSID,
             .password = EXAMPLE_WIFI_PASS,
         },
     };
+    /*
+    wifi_sta_config_t sta_config = {};
+    strcpy(sta_config.ssid , ssid);
+    strcpy(sta_config.password , pass);
+    wifi_config_t wifi_config = {
+        .sta = sta_config,
+    };
+    */
     ESP_LOGI(WIFI_LOG_TAG, "   Setting WiFi configuration SSID %s...", wifi_config.sta.ssid);
     ESP_ERROR_CHECK( esp_wifi_set_mode(WIFI_MODE_STA) );
     ESP_ERROR_CHECK( esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config) );

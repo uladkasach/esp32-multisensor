@@ -22,9 +22,7 @@ char* concat(const char *s1, const char *s2)
 void initialize_non_volatile_storage(void){
     ESP_ERROR_CHECK( nvs_flash_init() ); // initialize non-volatile storage
 }
-void initialize_utilities(void){
-    initialize_non_volatile_storage();
-    initialise_wifi();
+void start_wifi(){
     start_wifi_connection();
     wait_until_wifi_connected();
 }
