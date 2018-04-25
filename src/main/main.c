@@ -21,9 +21,10 @@ xTaskHandle time_updater_task_handle;
 xTaskHandle producer_task_handle;
 xTaskHandle consumer_task_handle;
 
-// global settings - producer and consumer are overwritten when initializing environment
+// global settings - producer, consumer, and data per output are overwritten when initializing environment
 int producer_delay_millisecond = 300;
 int consumer_delay_millisecond = 1000;
+int max_data_per_output = 10;
 int ids[4] = {0, 1, 2, 3};
 int ids_len = 4;
 
@@ -43,7 +44,7 @@ static void task_consumer(void)
     //const int sleep_count = 10;
     for( ;; )
     {
-        output_data_from_queue();
+        output_data_from_queue(max_data_per_output);
         milli_delay(consumer_delay_millisecond);
     }
 }
@@ -75,6 +76,7 @@ void initialize_environment(struct Settings settings){
     // update global variables based on settings
     producer_delay_millisecond = settings.sensing_period_milliseconds;
     consumer_delay_millisecond = 3*producer_delay_millisecond;
+    max_data_per_output = settings.buffer_size;
 }
 void start_tasks(){
     // start time syncer

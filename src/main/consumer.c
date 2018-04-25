@@ -24,11 +24,11 @@ void send_udp_packet(char* total_output_string, int total_data_points){
     {
         printf("send failed\n");
         close(socket_fd);
-        exit(2);
+    } else {
+        printf("data packet sent successfully!\n");
     }
-    printf("data packet sent successfully!\n");
 }
-void output_data_from_queue(){
+void output_data_from_queue(int max_data_per_output){
     // total data_string and queue_string
     char *total_output_string = "";
     char *queue_string = (char*)malloc(DATA_STRING_SIZE);
@@ -37,7 +37,7 @@ void output_data_from_queue(){
     //      read DATA_PER_OUTPUT times, untill queue is empty - then just finish
     int index;
     int total_data_points = 0;
-    for(index=0; index < DATA_PER_OUTPUT; index++){
+    for(index=0; index < max_data_per_output; index++){
         portBASE_TYPE queue_data = xQueueReceive(data_queue, queue_string, 10); // wait up to 10 ticks of blocking
         if(queue_data){
             // data was found - append it to the total output string
@@ -48,7 +48,7 @@ void output_data_from_queue(){
         } else {
             // no data was found - break the loop by seting index = DATA_PER_OUTPUT
             //printf("%s\n", "(!) queue_receive was not able to receive data from queue even after 10 ticks of blocking");
-            index=DATA_PER_OUTPUT;
+            index=max_data_per_output;
         }
     }
 
