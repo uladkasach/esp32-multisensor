@@ -1,7 +1,12 @@
 This package does two things:
 1. <s> update internal clock
 2. read distance with ultrasonic sensor using interupts & semaphore
-3. add data to data queue : [sensor_id, sensed_time, sensed_distance]
+    - 0. record time of trigger, send trigger, wait for interupt
+    - 2. wait for low: low time
+    - 3. return time difference
+3. abstract producer task creation to support different sensors
+    - sensor defined by "sensor id", "sensor pin trig", "sensor pin echo"
+3. update data to add add data to data queue according to pattern : [sensor_id, sensed_time, sensed_distance]
 4. <s> send data queue strings to a url
 5. create command line interface
     - use "config"

@@ -5,6 +5,7 @@
         methods
     */
     void milli_delay(int milli);
+    void micro_delay(int microns);
     char* concat(const char *s1, const char *s2);
     void initialize_non_volatile_storage(void);
     void initialize_utilities(void);
@@ -25,7 +26,6 @@
     // esp utils
     #include "esp_system.h"
     #include "nvs_flash.h"
-
     // custom
     #include "wifi_connect.h"
 
