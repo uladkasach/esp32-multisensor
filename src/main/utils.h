@@ -8,7 +8,6 @@
     void micro_delay(int microns);
     char* concat(const char *s1, const char *s2);
     void initialize_non_volatile_storage(void);
-    void start_wifi(void);
 
     /*
         dependencies

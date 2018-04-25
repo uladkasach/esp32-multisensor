@@ -35,10 +35,8 @@
         implementations
     */
     // methods
-    void start_wifi_connection(void);
-    void stop_wifi_connection(void);
-    void wait_until_wifi_connected(void);
-    void initialise_wifi();
+    void initialise_wifi(void);
+    bool join_wifi(const char* ssid, const char* pass, int timeout_ms);
     esp_err_t event_handler(void *ctx, system_event_t *event);
 
 

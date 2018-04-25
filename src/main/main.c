@@ -21,7 +21,8 @@ static const char *TAG_RETREIVE = "retreive";
 // for udp server init socket
 int port_number = 3000;
 char* ip_addr = "192.168.43.48"; // ifconfig -a
-
+char* ssid = "Space Farms";
+char* pass = "Waterfall";
 
 //Main application
 void app_main()
@@ -33,7 +34,7 @@ void app_main()
     // init utilities (wifi, nvs)
     initialize_non_volatile_storage();
     initialise_wifi();
-    start_wifi();
+    join_wifi(ssid, pass, 10000);
     initialize_udp_socket(port_number, ip_addr);
 
     // init queue
