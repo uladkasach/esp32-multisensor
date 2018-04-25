@@ -24,5 +24,5 @@
     /*
         implementations
     */
-    void measure_parse_queue(int ids[]);
+    void measure_parse_queue(int ids[], int ids_len);
 #endif

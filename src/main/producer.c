@@ -5,13 +5,13 @@
 time_t time_now;
 struct tm time_now_timeinfo;
 char strftime_buf[64];
-char* generate_data_string(uint32_t distances[]){
+char* generate_data_string(uint32_t distances[], int distances_len){
     //printf("begin generation of string\n");
 
     // generate distances string, for all distances passed in distances array
     char *all_distances_string = "";
     char *distance_string = (char*)malloc(DISTANCE_DATA_LENGTH);
-    int number_of_distances = sizeof(*distances)/sizeof(distances[0]) + 1;
+    int number_of_distances = distances_len;// sizeof(*distances)/sizeof(distances[0]) + 1;
     int index;
     for(index = 0; index < number_of_distances; index++){
         uint32_t this_distance = distances[index];
@@ -48,10 +48,10 @@ void queue_data_string(char *data_string){
 }
 
 
-void measure_parse_queue(int ids[]){
+void measure_parse_queue(int ids[], int ids_len){
 
     // get distance for each id
-    int number_of_distances = sizeof(*ids)/sizeof(ids[0]) + 1;
+    int number_of_distances = ids_len; // sizeof(ids)/sizeof(ids[0]);
     uint32_t distances[number_of_distances];
     int index;
     for(index = 0; index < number_of_distances; index++){
@@ -59,8 +59,8 @@ void measure_parse_queue(int ids[]){
     }
 
     // convert distances to data string
-    char* data_string = generate_data_string(distances);
-    printf("%s\n", data_string);
+    char* data_string = generate_data_string(distances, ids_len);
+    //printf("%s\n", data_string);
 
     // queue the data string
     queue_data_string(data_string);

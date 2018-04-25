@@ -19,7 +19,7 @@ void initialize_udp_socket(int port_number, char* ip_addr){
 }
 void send_udp_packet(char* total_output_string, int total_data_points){
 
-    int sent_data = lwip_sendto_r(socket_fd, total_output_string, (total_data_points+2)*DATA_STRING_SIZE,0,(struct sockaddr*)&ra,sizeof(ra));
+    int sent_data = lwip_sendto_r(socket_fd, total_output_string, (total_data_points)*DATA_STRING_SIZE,0,(struct sockaddr*)&ra,sizeof(ra));
     if(sent_data < 0)
     {
         printf("send failed\n");

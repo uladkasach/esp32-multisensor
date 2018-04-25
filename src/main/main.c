@@ -27,8 +27,8 @@ char* ssid = "Space Farms";
 char* pass = "Waterfall";
 int producer_delay_millisecond = 300;
 int consumer_delay_millisecond = 1000;
-int ids[2] = {0, 1};
-
+int ids[4] = {0, 1, 2, 3};
+int ids_len = 4;
 
 
 /*
@@ -38,7 +38,7 @@ static void task_producer(void)
 {
     for( ;; )
     {
-        measure_parse_queue(ids);
+        measure_parse_queue(ids, ids_len);
         milli_delay(producer_delay_millisecond);
     }
 }
@@ -54,14 +54,7 @@ static void task_consumer(void)
 
 
 
-
-//Main application
-void app_main()
-{
-
-    /*
-        start utilities
-    */
+void initialize_environment(){
     // init utilities (wifi, nvs)
     initialize_non_volatile_storage();
     initialise_wifi();
@@ -80,15 +73,15 @@ void app_main()
     // register the distance monitors
     register_sensor(0, 5, 2); // create lister for sensor 0: echo on 5, trig on 2
     register_sensor(1, 4, 0); // create lister for sensor 1: echo on 4, trig on 0
-
-    /*
-        start tasks
-    */
+    register_sensor(2, 17, 16);
+    register_sensor(3, 19, 18);
+}
+void start_tasks(){
     // start time syncer
     BaseType_t xReturned_updateTask;
     xReturned_updateTask = xTaskCreate(task_update_internal_time_with_sntp,  // pointer to function
                 "time_update_task",        // Task name string for debug purposes
-                8000,            // Stack depth as word
+                4000,            // Stack depth as word
                 NULL,           // function parameter (like a generic object)
                 1,              // Task Priority (Greater value has higher priority)
                 &time_updater_task_handle);  // Task handle
@@ -118,7 +111,7 @@ void app_main()
     BaseType_t xReturned_consumer_task;
     xReturned_consumer_task = xTaskCreate(task_consumer,  // pointer to function
                 "time_output_task",        // Task name string for debug purposes
-                8000,            // Stack depth as word
+                10000,            // Stack depth as word
                 NULL,           // function parameter (like a generic object)
                 2,              // Task Priority (Greater value has higher priority)
                 &consumer_task_handle);  // Task handle
@@ -126,6 +119,22 @@ void app_main()
     {
         printf("consumer task started successfully\n");
     }
+}
+
+
+//Main application
+void app_main()
+{
+
+    initialize_environment();
+    start_tasks();
+
+    /*
+    while(1){
+        measure_parse_queue(ids, ids_len);
+        milli_delay(1000);
+    }
+    */
 
 
 }

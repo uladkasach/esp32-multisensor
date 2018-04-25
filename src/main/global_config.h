@@ -22,7 +22,7 @@
     // data string sizes
     #define DISTANCE_DATA_LENGTH (8 + 1)* sizeof(char) // length of a distance measurement + delimeter
     #define TIMESTAMP_SIZE 8*sizeof(char)
-    #define DATA_STRING_SIZE ((DISTANCE_DATA_LENGTH*SENSORS_COUNT + TIMESTAMP_SIZE + 2 )* sizeof(char)) //  2 for delimterers
+    #define DATA_STRING_SIZE ((DISTANCE_DATA_LENGTH*SENSORS_COUNT + TIMESTAMP_SIZE + 3)* sizeof(char)) //  2 for delimterers
 
     // wifi
     #define EXAMPLE_WIFI_SSID "Space Farms"

@@ -1,4 +1,4 @@
-This package does two things:
+### OVERVIEW
 1. <s> update internal clock
 2. read distance with ultrasonic sensor using interupts & semaphore
     - 0. record time of trigger, send trigger, wait for interupt
@@ -11,6 +11,16 @@ This package does two things:
 5. create command line interface
     - use "config"
 6. create server to display information as requested
+
+
+
+## GPIOS FOR SENSORS
+register_sensor(0, 5, 2); // create lister for sensor 0: echo on 5, trig on 2
+register_sensor(1, 4, 0); // create lister for sensor 1: echo on 4, trig on 0
+register_sensor(2, 17, 16);
+register_sensor(3, 19, 18);
+
+
 
 
 ### To load the program onto your board and run it you must:
