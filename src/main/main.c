@@ -75,7 +75,7 @@ void initialize_environment(struct Settings settings){
 
     // update global variables based on settings
     producer_delay_millisecond = settings.sensing_period_milliseconds;
-    consumer_delay_millisecond = 3*producer_delay_millisecond;
+    consumer_delay_millisecond = (settings.buffer_size/2)*producer_delay_millisecond; // shoot for half full buffer
     max_data_per_output = settings.buffer_size;
 }
 void start_tasks(){

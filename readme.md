@@ -22,6 +22,18 @@ register_sensor(3, 19, 18);
 
 
 
+## References:
+https://github.com/espressif/esp-idf/blob/07b61d54f7e502bb12527e4b582de121ffa6fa02/examples/peripherals/spi_slave/sender/main/app_main.c
+
+^^ semaphore demo
+
+https://docs.aws.amazon.com/freertos-kernel/latest/dg/interrupt-management.html - describes interupt related methods
+
+http://esp32.info/docs/esp_idf/html/d6/d79/group__GPIO__Driver__APIs.html -- interupt handler
+
+http://esp-idf.readthedocs.io/en/latest/api-reference/peripherals/gpio.html
+
+
 
 ### To load the program onto your board and run it you must:
 1. setup the environment

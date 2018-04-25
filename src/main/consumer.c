@@ -30,9 +30,9 @@ void send_udp_packet(char* total_output_string, int total_data_points){
 }
 void output_data_from_queue(int max_data_per_output){
     // total data_string and queue_string
-    char *total_output_string = "";
+    char *total_output_string = (char*)malloc(sizeof(char)); // create a string on heap
+    total_output_string[0] = '\0'; // make it empty
     char *queue_string = (char*)malloc(DATA_STRING_SIZE);
-
     // read data from queue
     //      read DATA_PER_OUTPUT times, untill queue is empty - then just finish
     int index;
@@ -42,7 +42,9 @@ void output_data_from_queue(int max_data_per_output){
         if(queue_data){
             // data was found - append it to the total output string
             //printf("from queue: %s\n", queue_string);
-            total_output_string = concat(total_output_string, queue_string);
+            char *result = concat(total_output_string, queue_string);
+            free(total_output_string); // free old total_output_string
+            total_output_string = result;
             total_data_points++;
             //printf("total output string now: %s\n", total_output_string);
         } else {

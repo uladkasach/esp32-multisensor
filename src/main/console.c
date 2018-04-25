@@ -96,7 +96,7 @@ struct Settings retreive_settings_with_cli(){
         .pass="undefined",
         .ip_addr="undefined",
         .port=3000,
-        .sensing_period_milliseconds=100,
+        .sensing_period_milliseconds=33,
         .buffer_size=10,
     };
     if(true){
