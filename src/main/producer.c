@@ -33,6 +33,9 @@ char* generate_data_string(uint32_t distances[], int distances_len){
     char *data_string = (char*)malloc(DATA_STRING_SIZE);
     sprintf(data_string, "%s;%s#", strftime_buf, all_distances_string); // add terminator to end
 
+    // free the all_distances_string memory
+    free(all_distances_string);
+
     // return the data
     return data_string;
 }
