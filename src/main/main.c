@@ -11,6 +11,7 @@
 #include "time_sync.h"
 #include "producer.h"
 #include "consumer.h"
+#include "console.h"
 
 //esp logging
 #include "esp_log.h"
@@ -20,16 +21,11 @@ xTaskHandle time_updater_task_handle;
 xTaskHandle producer_task_handle;
 xTaskHandle consumer_task_handle;
 
-// for udp server init socket
-int port_number = 3000;
-char* ip_addr = "192.168.43.48"; // ifconfig -a
-char* ssid = "Space Farms";
-char* pass = "Waterfall";
+// global settings - producer and consumer are overwritten when initializing environment
 int producer_delay_millisecond = 300;
 int consumer_delay_millisecond = 1000;
 int ids[4] = {0, 1, 2, 3};
 int ids_len = 4;
-
 
 /*
     tasks
@@ -54,15 +50,15 @@ static void task_consumer(void)
 
 
 
-void initialize_environment(){
+void initialize_environment(struct Settings settings){
     // init utilities (wifi, nvs)
     initialize_non_volatile_storage();
     initialise_wifi();
-    join_wifi(ssid, pass, 10000);
-    initialize_udp_socket(port_number, ip_addr);
+    join_wifi(settings.ssid, settings.pass, 10000);
+    initialize_udp_socket(settings.port, settings.ip_addr);
 
     // init queue
-    data_queue = xQueueCreate(QUEUE_SIZE, DATA_STRING_SIZE); // create queue capable of holding 10 data strings at a time
+    data_queue = xQueueCreate(settings.buffer_size, DATA_STRING_SIZE); // create queue capable of holding 10 data strings at a time
     if(data_queue != 0){
         printf("%s\n", "data_queue initialized successfully");
     }
@@ -75,6 +71,10 @@ void initialize_environment(){
     register_sensor(1, 4, 0); // create lister for sensor 1: echo on 4, trig on 0
     register_sensor(2, 17, 16);
     register_sensor(3, 19, 18);
+
+    // update global variables based on settings
+    producer_delay_millisecond = settings.sensing_period_milliseconds;
+    consumer_delay_millisecond = 3*producer_delay_millisecond;
 }
 void start_tasks(){
     // start time syncer
@@ -122,11 +122,19 @@ void start_tasks(){
 }
 
 
+
 //Main application
 void app_main()
 {
 
-    initialize_environment();
+    // extract users requested configurations
+    initialize_console();
+    struct Settings settings = retreive_settings_with_cli();
+
+    // start environment
+    initialize_environment(settings);
+
+    // start the tasks
     start_tasks();
 
     /*
