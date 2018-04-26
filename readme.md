@@ -11,11 +11,12 @@
 
 
 ### GPIOS FOR SENSORS
+```c
 register_sensor(0, 5, 2); // create lister for sensor 0: echo on 5, trig on 2
 register_sensor(1, 4, 0); // create lister for sensor 1: echo on 4, trig on 0
 register_sensor(2, 17, 16);
 register_sensor(3, 19, 18);
-
+```
 
 ### To load the program onto your board and run it you must:
 1. setup the environment
